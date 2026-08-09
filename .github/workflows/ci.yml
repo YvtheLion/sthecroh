@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  api-tests:
+    name: Tests backend (API)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Installer les dépendances
+        working-directory: apps/api
+        run: npm install
+
+      - name: Générer le client Prisma
+        working-directory: apps/api
+        run: npx prisma generate
+
+      - name: Lancer les tests
+        working-directory: apps/api
+        run: npm test
+
+  api-build:
+    name: Build backend (API)
+    runs-on: ubuntu-latest
+    needs: api-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/api/package-lock.json
+
+      - name: Installer les dépendances
+        working-directory: apps/api
+        run: npm install
+
+      - name: Générer le client Prisma
+        working-directory: apps/api
+        run: npx prisma generate
+
+      - name: Compiler
+        working-directory: apps/api
+        run: npm run build
+
+  web-build:
+    name: Build frontend (Web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Installer les dépendances
+        working-directory: apps/web
+        run: npm install
+
+      - name: Compiler
+        working-directory: apps/web
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000

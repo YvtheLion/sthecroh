@@ -1,0 +1,29 @@
+# Dépendances
+node_modules/
+
+# Builds
+apps/web/.next/
+apps/api/dist/
+apps/web/out/
+
+# Environnement — NE JAMAIS committer de vraies clés
+.env
+.env.local
+apps/api/.env
+apps/web/.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / éditeurs
+.DS_Store
+.vscode/
+.idea/
+
+# Prisma
+apps/api/prisma/*.db
+
+# Divers
+coverage/
+.turbo/

@@ -1,0 +1,588 @@
+// ============================================================
+// STHECROH — Schéma de base de données
+// Séminaire Théologique — Plateforme LMS
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// UTILISATEURS & RÔLES
+// ------------------------------------------------------------
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+  ARCHIVED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phone         String?
+  avatarUrl     String?
+  title         String? // ex: "Professeure — Herméneutique Biblique" (affiché publiquement pour les enseignants)
+  role          Role       @default(STUDENT)
+  status        UserStatus @default(PENDING)
+
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+
+  emailVerifiedAt DateTime?
+  emailVerificationToken String?
+  lastLoginAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations étudiant
+  enrollments      Enrollment[]
+  lessonProgress   LessonProgress[] @relation("StudentLessonProgress")
+  submissions      Submission[]
+  examAttempts     ExamAttempt[]
+  grades           Grade[]           @relation("StudentGrades")
+  payments         Payment[]
+  certificates     Certificate[]
+  diplomas         Diploma[]
+  notifications    Notification[]
+  sentMessages     Message[]         @relation("MessageSender")
+  receivedMessages Message[]         @relation("MessageRecipient")
+  donations        Donation[]
+  activityLogs     ActivityLog[]
+
+  // Relations enseignant
+  coursesTaught    Course[]          @relation("TeacherCourses")
+  gradesGiven      Grade[]           @relation("TeacherGrades")
+  announcements    Announcement[]
+
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  @@index([role])
+  @@index([status])
+}
+
+// ------------------------------------------------------------
+// STRUCTURE ACADÉMIQUE
+// ------------------------------------------------------------
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  users    User[]
+  programs Program[]
+}
+
+model AcademicYear {
+  id        String   @id @default(cuid())
+  label     String   @unique // ex: "2026-2027"
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  semesters Semester[]
+}
+
+model Semester {
+  id             String   @id @default(cuid())
+  name           String // ex: "Semestre 1"
+  startDate      DateTime
+  endDate        DateTime
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  academicYearId String
+
+  courses Course[]
+}
+
+model Program {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  description  String?
+  durationYears Int     @default(1)
+  degreeLevel  String? // Certificat, Licence, Master, Doctorat
+
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId String
+
+  courses   Course[]
+  diplomas  Diploma[]
+  createdAt DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// COURS & CONTENU
+// ------------------------------------------------------------
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  description String?
+  coverUrl    String?
+  status      CourseStatus @default(DRAFT)
+  credits     Int          @default(0)
+  priceCents  Int          @default(0)
+  currency    String       @default("USD")
+
+  teacher   User   @relation("TeacherCourses", fields: [teacherId], references: [id])
+  teacherId String
+
+  program   Program? @relation(fields: [programId], references: [id])
+  programId String?
+
+  semester   Semester? @relation(fields: [semesterId], references: [id])
+  semesterId String?
+
+  modules     Module[]
+  enrollments Enrollment[]
+  exams       Exam[]
+  announcements Announcement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Module {
+  id       String @id @default(cuid())
+  title    String
+  position Int    @default(0)
+
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String
+
+  lessons Lesson[]
+}
+
+enum LessonType {
+  VIDEO
+  PDF
+  ARTICLE
+  LIVE_SESSION
+}
+
+model Lesson {
+  id       String     @id @default(cuid())
+  title    String
+  type     LessonType
+  position Int        @default(0)
+
+  videoUrl      String? // Cloudinary
+  pdfUrl        String? // Cloudinary
+  content       String? // article riche
+  durationMin   Int?
+
+  liveProvider  String? // zoom | meet | jitsi
+  liveUrl       String?
+  liveStartsAt  DateTime?
+
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  moduleId String
+
+  progress LessonProgress[]
+
+  createdAt DateTime @default(now())
+}
+
+model LessonProgress {
+  id        String   @id @default(cuid())
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId  String
+  student   User     @relation("StudentLessonProgress", fields: [studentId], references: [id])
+  studentId String
+  completed Boolean  @default(false)
+  watchedSeconds Int @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([lessonId, studentId])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  PENDING_PAYMENT
+}
+
+model Enrollment {
+  id        String           @id @default(cuid())
+  student   User             @relation(fields: [studentId], references: [id])
+  studentId String
+  course    Course           @relation(fields: [courseId], references: [id])
+  courseId  String
+  status    EnrollmentStatus @default(PENDING_PAYMENT)
+  progress  Float            @default(0) // 0-100
+  enrolledAt DateTime        @default(now())
+  completedAt DateTime?
+
+  @@unique([studentId, courseId])
+}
+
+// ------------------------------------------------------------
+// EXAMENS, DEVOIRS & NOTES
+// ------------------------------------------------------------
+
+enum ExamType {
+  QUIZ
+  EXAM
+  ASSIGNMENT
+}
+
+model Exam {
+  id          String   @id @default(cuid())
+  title       String
+  type        ExamType
+  course      Course   @relation(fields: [courseId], references: [id])
+  courseId    String
+  durationMin Int?
+  maxScore    Float    @default(100)
+  availableFrom DateTime?
+  availableTo   DateTime?
+  instructions  String?
+
+  questions   Question[]
+  attempts    ExamAttempt[]
+  submissions Submission[]
+  grades      Grade[]
+
+  createdAt DateTime @default(now())
+}
+
+enum QuestionType {
+  MCQ
+  TRUE_FALSE
+  OPEN
+}
+
+model Question {
+  id       String       @id @default(cuid())
+  exam     Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examId   String
+  type     QuestionType
+  prompt   String
+  options  Json? // pour QCM: [{id,label,correct}]
+  points   Float        @default(1)
+  position Int          @default(0)
+}
+
+model ExamAttempt {
+  id        String   @id @default(cuid())
+  exam      Exam     @relation(fields: [examId], references: [id])
+  examId    String
+  student   User     @relation(fields: [studentId], references: [id])
+  studentId String
+  answers   Json
+  score     Float?
+  startedAt DateTime @default(now())
+  submittedAt DateTime?
+}
+
+// Devoirs remis (fichiers)
+model Submission {
+  id         String   @id @default(cuid())
+  exam       Exam     @relation(fields: [examId], references: [id])
+  examId     String
+  student    User     @relation(fields: [studentId], references: [id])
+  studentId  String
+  fileUrl    String?
+  comment    String?
+  submittedAt DateTime @default(now())
+  gradedAt   DateTime?
+  score      Float?
+  feedback   String?
+}
+
+model Grade {
+  id        String  @id @default(cuid())
+  student   User    @relation("StudentGrades", fields: [studentId], references: [id])
+  studentId String
+  teacher   User    @relation("TeacherGrades", fields: [teacherId], references: [id])
+  teacherId String
+  exam      Exam    @relation(fields: [examId], references: [id])
+  examId    String
+  score     Float
+  maxScore  Float   @default(100)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, examId])
+}
+
+// ------------------------------------------------------------
+// PAIEMENTS
+// ------------------------------------------------------------
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  ORANGE_MONEY
+  MTN_MOMO
+  AIRTEL_MONEY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id            String          @id @default(cuid())
+  user          User            @relation(fields: [userId], references: [id])
+  userId        String
+  amountCents   Int
+  currency      String          @default("USD")
+  provider      PaymentProvider
+  status        PaymentStatus   @default(PENDING)
+  providerRef   String? // id transaction externe
+  description   String?
+  receiptUrl    String?
+  createdAt     DateTime        @default(now())
+}
+
+// ------------------------------------------------------------
+// DONS
+// ------------------------------------------------------------
+
+enum DonationFrequency {
+  ONE_TIME
+  MONTHLY
+}
+
+model DonationCause {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String?
+  goalCents   Int?
+  raisedCents Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  donations Donation[]
+}
+
+model Donation {
+  id            String            @id @default(cuid())
+  donor         User?             @relation(fields: [donorId], references: [id])
+  donorId       String?
+  donorName     String? // don anonyme possible
+  donorEmail    String?
+  cause         DonationCause?    @relation(fields: [causeId], references: [id])
+  causeId       String?
+  amountCents   Int
+  currency      String            @default("USD")
+  frequency     DonationFrequency @default(ONE_TIME)
+  provider      PaymentProvider
+  status        PaymentStatus     @default(PENDING)
+  providerRef   String?
+  receiptSent   Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+}
+
+// ------------------------------------------------------------
+// CERTIFICATS & DIPLÔMES
+// ------------------------------------------------------------
+
+model Certificate {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  title         String
+  courseName    String?
+  certificateNo String   @unique // ex: STH-2026-0947
+  qrToken       String   @unique
+  pdfUrl        String?
+  issuedAt      DateTime @default(now())
+  revoked       Boolean  @default(false)
+}
+
+model Diploma {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  program     Program  @relation(fields: [programId], references: [id])
+  programId   String
+  diplomaNo   String   @unique
+  qrToken     String   @unique
+  pdfUrl      String?
+  issuedAt    DateTime @default(now())
+  mention     String? // ex: "Mention Bien"
+  revoked     Boolean  @default(false)
+}
+
+// ------------------------------------------------------------
+// COMMUNICATION
+// ------------------------------------------------------------
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  course    Course?  @relation(fields: [courseId], references: [id])
+  courseId  String?
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+  senderId    String
+  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
+  recipientId String
+  body        String
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+}
+
+enum NotificationType {
+  INFO
+  PAYMENT
+  GRADE
+  ANNOUNCEMENT
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  type      NotificationType @default(INFO)
+  title     String
+  body      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+}
+
+// ------------------------------------------------------------
+// BIBLIOTHÈQUE NUMÉRIQUE
+// ------------------------------------------------------------
+
+model LibraryResource {
+  id          String   @id @default(cuid())
+  title       String
+  author      String?
+  category    String?
+  fileUrl     String
+  coverUrl    String?
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+// ------------------------------------------------------------
+// SÉCURITÉ & AUDIT
+// ------------------------------------------------------------
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  action    String // ex: "LOGIN", "PAYMENT_CREATED", "GRADE_UPDATED"
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ------------------------------------------------------------
+// CONTENU DE LA PAGE D'ACCUEIL (100% gérable depuis l'administration)
+// ------------------------------------------------------------
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  quote     String
+  name      String
+  role      String
+  initials  String
+  published Boolean  @default(true)
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  title     String
+  place     String
+  date      DateTime
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  label     String
+  imageUrl  String?
+  tall      Boolean  @default(false)
+  position  Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  position  Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model NewsPost {
+  id        String   @id @default(cuid())
+  title     String
+  excerpt   String
+  date      DateTime @default(now())
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model HistoryMilestone {
+  id        String   @id @default(cuid())
+  year      String
+  title     String
+  text      String
+  position  Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
