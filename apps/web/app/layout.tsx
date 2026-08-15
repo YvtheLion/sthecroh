@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 const TITLE = 'STHECROH — Séminaire Théologique | Plateforme LMS';
 const DESCRIPTION =
   "STHECROH réunit cours en ligne, suivi pédagogique, certification vérifiable et administration dans une seule plateforme pensée pour les séminaires théologiques francophones.";
