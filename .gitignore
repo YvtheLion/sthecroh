@@ -5,6 +5,10 @@ node_modules/
 apps/web/.next/
 apps/api/dist/
 apps/web/out/
+*.tsbuildinfo
+apps/api/prisma/seed.js
+apps/api/prisma/seed.d.ts
+apps/api/prisma/seed.js.map
 
 # Environnement — NE JAMAIS committer de vraies clés
 .env
@@ -27,8 +31,3 @@ apps/api/prisma/*.db
 # Divers
 coverage/
 .turbo/
-
-*.tsbuildinfo
-apps/api/prisma/seed.js
-apps/api/prisma/seed.d.ts
-apps/api/prisma/seed.js.map
