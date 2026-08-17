@@ -15,9 +15,14 @@ const ROLE_LABELS: Record<string, string> = {
 export function AppTopbar({ title }: { title: string }) {
   const { user, logout } = useAuth();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoChecked, setLogoChecked] = useState(false);
 
   useEffect(() => {
-    siteSettingsApi.get().then((s) => setLogoUrl(s.logoUrl)).catch(() => {});
+    siteSettingsApi
+      .get()
+      .then((s) => setLogoUrl(s.logoUrl))
+      .catch(() => {})
+      .finally(() => setLogoChecked(true));
   }, []);
 
   return (
@@ -27,10 +32,12 @@ export function AppTopbar({ title }: { title: string }) {
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt="STHECROH" className="brand-logo-img" />
-          ) : (
+          ) : logoChecked ? (
             <span className="brand-mark" style={{ width: 26, height: 26 }} />
+          ) : (
+            <span className="brand-mark-spacer" style={{ width: 26, height: 26 }} />
           )}
-          STHECROH
+          <span className="brand-text">STHECROH</span>
         </a>
         <span style={{ color: 'var(--border)' }}>|</span>
         <span style={{ fontSize: 13.5, color: 'var(--text-soft)' }}>{title}</span>

@@ -22,9 +22,14 @@ export function Nav() {
   const { theme, toggleTheme, openModal, showToast } = useUI();
   const { user, logout, loading } = useAuth();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoChecked, setLogoChecked] = useState(false);
 
   useEffect(() => {
-    siteSettingsApi.get().then((s) => setLogoUrl(s.logoUrl)).catch(() => {});
+    siteSettingsApi
+      .get()
+      .then((s) => setLogoUrl(s.logoUrl))
+      .catch(() => {})
+      .finally(() => setLogoChecked(true));
   }, []);
 
   useEffect(() => {
@@ -47,8 +52,10 @@ export function Nav() {
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt="STHECROH" className="brand-logo-img" />
-          ) : (
+          ) : logoChecked ? (
             <span className="brand-mark" />
+          ) : (
+            <span className="brand-mark-spacer" />
           )}
           <span>
             STHECROH
