@@ -26,7 +26,7 @@ export function AppTopbar({ title }: { title: string }) {
         <a href="/" className="brand" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt="STHECROH" className="brand-logo-img" style={{ width: 26, height: 26 }} />
+            <img src={logoUrl} alt="STHECROH" className="brand-logo-img" />
           ) : (
             <span className="brand-mark" style={{ width: 26, height: 26 }} />
           )}
