@@ -586,3 +586,11 @@ model ContactMessage {
   handled   Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+/// Une seule ligne — réglages globaux du site (logo, etc.)
+model SiteSettings {
+  id        String   @id @default(cuid())
+  logoUrl   String?
+  faviconUrl String?
+  updatedAt DateTime @updatedAt
+}

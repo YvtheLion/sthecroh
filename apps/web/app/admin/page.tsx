@@ -13,8 +13,10 @@ import { AdminPaymentsPanel } from '../../components/admin/AdminPaymentsPanel';
 import { AdminDonationsPanel } from '../../components/admin/AdminDonationsPanel';
 import { AdminActivityLogsPanel } from '../../components/admin/AdminActivityLogsPanel';
 import { AdminCertificatesPanel } from '../../components/admin/AdminCertificatesPanel';
+import { AdminBrandingPanel } from '../../components/admin/AdminBrandingPanel';
 
 const TABS = [
+  { id: 'branding', label: 'Logo du site' },
   { id: 'testimonials', label: 'Témoignages' },
   { id: 'events', label: 'Événements' },
   { id: 'gallery', label: 'Galerie' },
@@ -112,7 +114,7 @@ const SEMESTER_FIELDS: FieldDef[] = [
 ];
 
 function AdminContent() {
-  const [tab, setTab] = useState<TabId>('testimonials');
+  const [tab, setTab] = useState<TabId>('branding');
 
   return (
     <RoleGate allow={['ADMIN', 'SUPER_ADMIN']} hint="Connectez-vous avec un compte ADMIN ou SUPER_ADMIN.">
@@ -130,6 +132,7 @@ function AdminContent() {
           ))}
         </div>
         <div className="admin-main">
+          {tab === 'branding' && <AdminBrandingPanel />}
           {tab === 'testimonials' && (
             <AdminResourceTable resource="testimonials" title="Témoignages" fields={TESTIMONIAL_FIELDS} columns={['name', 'role', 'published']} />
           )}

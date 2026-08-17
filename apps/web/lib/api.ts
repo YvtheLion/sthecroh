@@ -651,3 +651,15 @@ export const announcementsApi = {
   mine: (token: string) => request<any[]>('/announcements/mine', { token }),
   forMe: (token: string) => request<any[]>('/announcements/for-me', { token }),
 };
+
+export interface SiteSettingsDto {
+  id: string;
+  logoUrl: string | null;
+  faviconUrl: string | null;
+}
+
+export const siteSettingsApi = {
+  get: () => request<SiteSettingsDto>('/site-settings'),
+  update: (token: string, data: { logoUrl?: string | null; faviconUrl?: string | null }) =>
+    request<SiteSettingsDto>('/site-settings', { method: 'PATCH', token, body: JSON.stringify(data) }),
+};

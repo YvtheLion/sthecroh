@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useUI } from '../lib/ui-context';
 import { useAuth } from '../lib/auth-context';
+import { siteSettingsApi } from '../lib/api';
 
 const LINKS = [
   { href: '#presentation', label: 'Notre mission' },
@@ -20,6 +21,11 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const { theme, toggleTheme, openModal, showToast } = useUI();
   const { user, logout, loading } = useAuth();
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    siteSettingsApi.get().then((s) => setLogoUrl(s.logoUrl)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -38,7 +44,12 @@ export function Nav() {
     <nav className={`nav${scrolled ? ' scrolled' : ''}`} id="nav">
       <div className="container">
         <a href="#top" className="brand">
-          <span className="brand-mark" />
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt="STHECROH" className="brand-logo-img" />
+          ) : (
+            <span className="brand-mark" />
+          )}
           <span>
             STHECROH
             <small>Séminaire Théologique</small>

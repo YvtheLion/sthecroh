@@ -1,11 +1,27 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { siteSettingsApi } from '../lib/api';
+
 export function Footer() {
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    siteSettingsApi.get().then((s) => setLogoUrl(s.logoUrl)).catch(() => {});
+  }, []);
+
   return (
     <footer>
       <div className="container">
         <div className="foot-grid">
           <div className="foot-brand">
             <div className="brand" style={{ color: '#fff' }}>
-              <span className="brand-mark" />
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoUrl} alt="STHECROH" className="brand-logo-img" />
+              ) : (
+                <span className="brand-mark" />
+              )}
               <span>STHECROH</span>
             </div>
             <p>

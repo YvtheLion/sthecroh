@@ -150,7 +150,3 @@ aucune redirection croisée entre espaces.
 
 Vu l'ampleur du projet, envisage de poursuivre ce développement avec **Claude Code** pour itérer plus
 efficacement sur le dépôt au fil de nombreuses sessions.
-
-
-
-
