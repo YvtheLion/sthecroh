@@ -215,7 +215,7 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
               {announceMessage}
             </p>
           )}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="btn btn-primary btn-sm" type="submit" disabled={announceSaving}>
               {announceSaving ? 'Envoi…' : 'Envoyer à tous les étudiants inscrits'}
             </button>
@@ -435,7 +435,7 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
           )}
 
           {error && <p style={{ color: 'var(--danger)', fontSize: 13, marginTop: 12 }}>{error}</p>}
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
             <button className="btn btn-primary btn-sm" type="submit" disabled={savingExam}>
               {savingExam ? 'Création…' : 'Créer'}
             </button>

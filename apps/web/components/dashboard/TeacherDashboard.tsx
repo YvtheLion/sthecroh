@@ -191,7 +191,7 @@ export function TeacherDashboard({ firstName }: { firstName: string }) {
                     <div key={s.id} className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
                       <span>{s.examTitle} — {s.studentName}</span>
                       {gradingId === s.id ? (
-                        <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <span style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                           <input
                             type="number"
                             min={0}

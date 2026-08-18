@@ -91,7 +91,7 @@ export function PaymentsView() {
               <h4>{fee.label}</h4>
               <span className="meta">{(fee.amountCents / 100).toFixed(2)} $</span>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button className="btn btn-primary btn-sm" disabled={payingIndex !== null} onClick={() => handlePay(i, 'stripe')}>
                 {payingIndex === i ? 'Redirection…' : '💳 Carte'}
               </button>

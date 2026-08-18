@@ -115,7 +115,7 @@ export function TeacherCoursesList() {
               {c._count.enrollments} étudiant{c._count.enrollments > 1 ? 's' : ''} · {c._count.modules} module{c._count.modules > 1 ? 's' : ''} ·{' '}
               {c._count.exams} examen{c._count.exams > 1 ? 's' : ''}
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               <a href={`/dashboard/teacher/courses/${c.id}`} className="btn btn-sm btn-primary">
                 Gérer le contenu
               </a>

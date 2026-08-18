@@ -214,6 +214,10 @@ section{padding:120px 0;position:relative;}
     radial-gradient(1100px 600px at 82% -10%, var(--royal-glow), transparent 60%),
     radial-gradient(700px 500px at -10% 20%, var(--gold-glow), transparent 55%);
 }
+@media (max-width:640px){
+  .hero{padding:120px 0 60px;}
+  .modal-box{padding:26px 22px;}
+}
 .hero-rose{
   position:absolute; right:-180px; top:-140px; width:620px; height:620px; opacity:.5; pointer-events:none;
   animation: rose-spin 120s linear infinite;

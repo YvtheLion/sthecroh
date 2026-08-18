@@ -88,7 +88,7 @@ export function AdminBrandingPanel() {
           directement sur la plateforme.
         </p>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 16, flexWrap: 'wrap' }}>
           <div
             style={{
               width: 90,
@@ -127,7 +127,7 @@ export function AdminBrandingPanel() {
         </div>
 
         {preview && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <button className="btn btn-primary btn-sm" disabled={saving} onClick={handleSave}>
               {saving ? 'Enregistrement…' : 'Enregistrer ce logo'}
             </button>

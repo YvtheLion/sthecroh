@@ -168,7 +168,7 @@ export function StudentDashboard({ firstName, lastName }: { firstName: string; l
                 <div className="list-simple">
                   {announcements.map((a) => (
                     <div key={a.id} className="row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 4 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: 8 }}>
                         <span style={{ fontWeight: 600 }}>{a.title}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-soft)' }}>{a.course.title}</span>
                       </div>
