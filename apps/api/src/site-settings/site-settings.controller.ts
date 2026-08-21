@@ -17,7 +17,16 @@ export class SiteSettingsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')
   @Patch()
-  update(@Body() body: { logoUrl?: string | null; faviconUrl?: string | null }) {
+  update(
+    @Body()
+    body: {
+      logoUrl?: string | null;
+      faviconUrl?: string | null;
+      heroTitle?: string | null;
+      heroSubtitle?: string | null;
+      socialLinks?: { platform: string; url: string }[] | null;
+    },
+  ) {
     return this.service.update(body);
   }
 }

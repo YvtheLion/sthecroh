@@ -12,8 +12,14 @@ export class SiteSettingsService {
     return this.prisma.siteSettings.create({ data: {} });
   }
 
-  async update(data: { logoUrl?: string | null; faviconUrl?: string | null }) {
+  async update(data: {
+    logoUrl?: string | null;
+    faviconUrl?: string | null;
+    heroTitle?: string | null;
+    heroSubtitle?: string | null;
+    socialLinks?: { platform: string; url: string }[] | null;
+  }) {
     const settings = await this.get();
-    return this.prisma.siteSettings.update({ where: { id: settings.id }, data });
+    return this.prisma.siteSettings.update({ where: { id: settings.id }, data: data as any });
   }
 }

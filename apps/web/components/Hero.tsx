@@ -1,13 +1,29 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useUI } from '../lib/ui-context';
+import { siteSettingsApi } from '../lib/api';
 
 const MINI_VALUES = [30, 55, 40, 70, 50, 85, 65];
+const DEFAULT_TITLE = 'Enseignons la bible autrement.';
+const DEFAULT_SUBTITLE =
+  'STHECROH réunit cours, suivi pédagogique, certification vérifiable et administration dans une seule plateforme pensée pour les séminaires théologiques francophones.';
 
 export function Hero() {
   const { openModal } = useUI();
   const miniChartRef = useRef<HTMLDivElement>(null);
+  const [heroTitle, setHeroTitle] = useState(DEFAULT_TITLE);
+  const [heroSubtitle, setHeroSubtitle] = useState(DEFAULT_SUBTITLE);
+
+  useEffect(() => {
+    siteSettingsApi
+      .get()
+      .then((s) => {
+        if (s.heroTitle) setHeroTitle(s.heroTitle);
+        if (s.heroSubtitle) setHeroSubtitle(s.heroSubtitle);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const container = miniChartRef.current;
@@ -46,13 +62,8 @@ export function Hero() {
       <div className="container hero-grid">
         <div className="reveal in">
           <div className="eyebrow">Plateforme LMS Théologique</div>
-          <h1>
-            Former les <em>bâtisseurs de foi</em> de demain, avec exigence et clarté.
-          </h1>
-          <p className="lede">
-            STHECROH réunit cours, suivi pédagogique, certification vérifiable et administration dans une
-            seule plateforme pensée pour les séminaires théologiques francophones.
-          </p>
+          <h1>{heroTitle}</h1>
+          <p className="lede">{heroSubtitle}</p>
           <div className="hero-cta">
             <button className="btn btn-primary" onClick={() => openModal('login')}>
               Se connecter

@@ -1,16 +1,31 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { siteSettingsApi } from '../lib/api';
+import { siteSettingsApi, SocialLinkDto } from '../lib/api';
+
+const SOCIAL_ICONS: Record<string, string> = {
+  facebook: 'f',
+  youtube: '▶',
+  linkedin: 'in',
+  instagram: '◎',
+  twitter: '𝕏',
+  x: '𝕏',
+  tiktok: '♪',
+  whatsapp: '☎',
+};
 
 export function Footer() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoChecked, setLogoChecked] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialLinkDto[]>([]);
 
   useEffect(() => {
     siteSettingsApi
       .get()
-      .then((s) => setLogoUrl(s.logoUrl))
+      .then((s) => {
+        setLogoUrl(s.logoUrl);
+        setSocialLinks(s.socialLinks ?? []);
+      })
       .catch(() => {})
       .finally(() => setLogoChecked(true));
   }, []);
@@ -35,12 +50,15 @@ export function Footer() {
               Séminaire Théologique - Former avec rigueur, servir avec foi. Plateforme LMS dédiée à la
               formation théologique francophone.
             </p>
-            <div className="social-row">
-              <a href="#" aria-label="Facebook">f</a>
-              <a href="#" aria-label="YouTube">▶</a>
-              <a href="#" aria-label="LinkedIn">in</a>
-              <a href="#" aria-label="Instagram">◎</a>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="social-row">
+                {socialLinks.map((link) => (
+                  <a key={link.platform} href={link.url} target="_blank" rel="noreferrer" aria-label={link.platform}>
+                    {SOCIAL_ICONS[link.platform.toLowerCase()] ?? link.platform[0].toUpperCase()}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <h5>Plateforme</h5>

@@ -16,7 +16,7 @@ import { AdminCertificatesPanel } from '../../components/admin/AdminCertificates
 import { AdminBrandingPanel } from '../../components/admin/AdminBrandingPanel';
 
 const TABS = [
-  { id: 'branding', label: 'Logo du site' },
+  { id: 'branding', label: "Accueil & réseaux sociaux" },
   { id: 'testimonials', label: 'Témoignages' },
   { id: 'events', label: 'Événements' },
   { id: 'gallery', label: 'Galerie' },
