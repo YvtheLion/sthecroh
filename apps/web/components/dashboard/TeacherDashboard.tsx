@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../lib/auth-context';
-import { dashboardApi, submissionsApi, TeacherDashboardSummary, ApiError } from '../../lib/api';
+import { dashboardApi, submissionsApi, liveSessionApi, TeacherDashboardSummary, ApiError } from '../../lib/api';
 
 function BarChart({ data }: { data: { label: string; h: number }[] }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -64,6 +64,8 @@ export function TeacherDashboard({ firstName }: { firstName: string }) {
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [scoreInput, setScoreInput] = useState('');
   const [joinedLiveId, setJoinedLiveId] = useState<string | null>(null);
+  const [liveJoinUrl, setLiveJoinUrl] = useState<string | null>(null);
+  const [joiningLive, setJoiningLive] = useState(false);
 
   const load = () => {
     if (!token) return;
@@ -79,6 +81,20 @@ export function TeacherDashboard({ firstName }: { firstName: string }) {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  const joinLive = async (lessonId: string) => {
+    if (!token) return;
+    setJoiningLive(true);
+    try {
+      const { joinUrl } = await liveSessionApi.getJoinUrl(token, lessonId);
+      setLiveJoinUrl(joinUrl);
+      setJoinedLiveId(lessonId);
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Impossible de rejoindre cette session.');
+    } finally {
+      setJoiningLive(false);
+    }
+  };
 
   const submitGrade = async (submissionId: string) => {
     if (!token) return;
@@ -136,15 +152,26 @@ export function TeacherDashboard({ firstName }: { firstName: string }) {
                           )}
                         </span>
                         {l.liveUrl && (
-                          <button className="btn btn-sm btn-gold" onClick={() => setJoinedLiveId(joinedLiveId === l.id ? null : l.id)}>
-                            {joinedLiveId === l.id ? 'Fermer' : '🔴 Rejoindre'}
+                          <button
+                            className="btn btn-sm btn-gold"
+                            disabled={joiningLive}
+                            onClick={() => {
+                              if (joinedLiveId === l.id) {
+                                setJoinedLiveId(null);
+                                setLiveJoinUrl(null);
+                              } else {
+                                joinLive(l.id);
+                              }
+                            }}
+                          >
+                            {joinedLiveId === l.id ? 'Fermer' : joiningLive ? 'Connexion…' : '🔴 Rejoindre'}
                           </button>
                         )}
                       </div>
-                      {joinedLiveId === l.id && l.liveUrl && (
+                      {joinedLiveId === l.id && liveJoinUrl && (
                         <div style={{ aspectRatio: '16/9', background: '#111633', borderRadius: 12, overflow: 'hidden', marginTop: 8 }}>
                           <iframe
-                            src={`${l.liveUrl}#config.prejoinPageEnabled=false`}
+                            src={liveJoinUrl}
                             allow="camera; microphone; fullscreen; display-capture; autoplay"
                             style={{ width: '100%', height: '100%', border: 0 }}
                             title={`Session en direct — ${l.title}`}

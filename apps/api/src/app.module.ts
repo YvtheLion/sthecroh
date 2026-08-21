@@ -24,6 +24,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
 import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 import { HealthModule } from './health/health.module';
 import { SiteSettingsModule } from './site-settings/site-settings.module';
+import { JaasModule } from './jaas/jaas.module';
 import { PaypalModule } from './paypal/paypal.module';
 import { PaymentsModule } from './payments/payments.module';
 import { DonationsModule } from './donations/donations.module';
@@ -64,6 +65,7 @@ import { ContactMessagesModule } from './contact-messages/contact-messages.modul
     ActivityLogsModule,
     HealthModule,
     SiteSettingsModule,
+    JaasModule,
     PaypalModule,
     PaymentsModule,
     DonationsModule,

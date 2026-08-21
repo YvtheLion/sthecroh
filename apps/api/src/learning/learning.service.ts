@@ -1,6 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { JaasService } from '../jaas/jaas.service';
+import { CertificatesService } from '../certificates/certificates.service';
 
 interface McqOption {
   id: string;
@@ -13,6 +15,8 @@ export class LearningService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly jaas: JaasService,
+    private readonly certificates: CertificatesService,
   ) {}
 
   /** Contenu complet d'un cours pour un étudiant inscrit : modules, leçons, progression par leçon */
@@ -89,6 +93,7 @@ export class LearningService {
       where: { studentId, completed: true, lesson: { module: { courseId } } },
     });
     const progress = totalLessons === 0 ? 0 : Math.round((completedLessons / totalLessons) * 100);
+    const justCompleted = progress >= 100 && enrollment.status !== 'COMPLETED';
 
     await this.prisma.enrollment.update({
       where: { id: enrollment.id },
@@ -98,6 +103,29 @@ export class LearningService {
         completedAt: progress >= 100 ? new Date() : null,
       },
     });
+
+    // Émission automatique du certificat, une seule fois, dès que le cours est terminé à 100%
+    if (justCompleted) {
+      const course = await this.prisma.course.findUnique({ where: { id: courseId } });
+      if (course) {
+        const alreadyIssued = await this.prisma.certificate.findFirst({
+          where: { userId: studentId, title: course.title },
+        });
+        if (!alreadyIssued) {
+          await this.certificates.issueCertificate({
+            userId: studentId,
+            title: course.title,
+            courseName: course.title,
+          });
+          await this.notifications.create(
+            studentId,
+            'Certificat obtenu 🎓',
+            `Félicitations ! Vous avez terminé « ${course.title} » — votre certificat est prêt dans "Mes certificats".`,
+            'ANNOUNCEMENT',
+          );
+        }
+      }
+    }
 
     return { progress };
   }
@@ -221,5 +249,48 @@ export class LearningService {
     }
 
     return { score: finalScore, maxScore: exam.maxScore, pendingManualGrading: hasOpenQuestions };
+  }
+
+  /**
+   * Génère un lien de connexion signé pour UNE session en direct, propre à l'utilisateur qui le
+   * demande (modérateur pour l'enseignant propriétaire du cours, participant pour un étudiant
+   * inscrit). Chaque appel génère un nouveau lien — jamais réutilisable par quelqu'un d'autre.
+   */
+  async getLiveJoinUrl(userId: string, lessonId: string) {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id: lessonId },
+      include: { module: { include: { course: { include: { teacher: true } } } } },
+    });
+    if (!lesson || lesson.type !== 'LIVE_SESSION' || !lesson.liveUrl) {
+      throw new NotFoundException('Session en direct introuvable.');
+    }
+
+    const course = lesson.module.course;
+    const isOwnerTeacher = course.teacherId === userId;
+
+    let isEnrolledStudent = false;
+    if (!isOwnerTeacher) {
+      const enrollment = await this.prisma.enrollment.findUnique({
+        where: { studentId_courseId: { studentId: userId, courseId: course.id } },
+      });
+      isEnrolledStudent = !!enrollment;
+    }
+
+    if (!isOwnerTeacher && !isEnrolledStudent) {
+      throw new ForbiddenException("Vous n'avez pas accès à cette session.");
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Utilisateur introuvable.');
+
+    const target = this.jaas.buildJoinTarget({
+      roomName: lesson.liveUrl, // stocke uniquement le nom de la salle, jamais une URL complète
+      userId: user.id,
+      displayName: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      isModerator: isOwnerTeacher,
+    });
+
+    return target;
   }
 }

@@ -1,10 +1,13 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { JaasService } from '../jaas/jaas.service';
 
 @Injectable()
 export class TeacherCoursesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jaas: JaasService,
+  ) {}
 
   private async assertOwnsCourse(teacherId: string, courseId: string) {
     const course = await this.prisma.course.findUnique({ where: { id: courseId } });
@@ -93,7 +96,9 @@ export class TeacherCoursesService {
     const count = await this.prisma.lesson.count({ where: { moduleId } });
 
     const isLive = data.type === 'LIVE_SESSION';
-    const roomSlug = isLive ? `STHECROH-${crypto.randomBytes(6).toString('hex')}` : undefined;
+    // On stocke uniquement le NOM de la salle : l'URL réellement utilisable (avec jeton signé,
+    // rôle modérateur/participant) est générée à la volée, à chaque connexion, via /learning/live/:id.
+    const roomName = isLive ? this.jaas.generateRoomName() : undefined;
 
     return this.prisma.lesson.create({
       data: {
@@ -107,8 +112,8 @@ export class TeacherCoursesService {
         durationMin: data.durationMin,
         ...(isLive
           ? {
-              liveProvider: 'jitsi',
-              liveUrl: `https://meet.jit.si/${roomSlug}`,
+              liveProvider: this.jaas.isConfigured ? 'jaas' : 'jitsi',
+              liveUrl: roomName,
               liveStartsAt: data.liveStartsAt ? new Date(data.liveStartsAt) : undefined,
             }
           : {}),

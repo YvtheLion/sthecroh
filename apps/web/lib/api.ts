@@ -663,3 +663,8 @@ export const siteSettingsApi = {
   update: (token: string, data: { logoUrl?: string | null; faviconUrl?: string | null }) =>
     request<SiteSettingsDto>('/site-settings', { method: 'PATCH', token, body: JSON.stringify(data) }),
 };
+
+export const liveSessionApi = {
+  getJoinUrl: (token: string, lessonId: string) =>
+    request<{ provider: 'jaas' | 'jitsi'; joinUrl: string }>(`/learning/live/${lessonId}`, { token }),
+};

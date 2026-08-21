@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../lib/auth-context';
-import { teacherCoursesApi, announcementsApi, TeacherCourseDetailDto, ApiError } from '../../lib/api';
+import { teacherCoursesApi, announcementsApi, liveSessionApi, TeacherCourseDetailDto, ApiError } from '../../lib/api';
 import { FileUploadButton } from './FileUploadButton';
 
 type DraftQuestion = { type: 'MCQ' | 'TRUE_FALSE' | 'OPEN'; prompt: string; points: number; options: { id: string; label: string; correct: boolean }[] };
@@ -28,6 +28,8 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
   const [course, setCourse] = useState<TeacherCourseDetailDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [joinedLiveId, setJoinedLiveId] = useState<string | null>(null);
+  const [liveJoinUrl, setLiveJoinUrl] = useState<string | null>(null);
+  const [joiningLive, setJoiningLive] = useState(false);
   const [showAnnounceForm, setShowAnnounceForm] = useState(false);
   const [announceTitle, setAnnounceTitle] = useState('');
   const [announceBody, setAnnounceBody] = useState('');
@@ -59,6 +61,20 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
     if (!token || !course) return;
     await teacherCoursesApi.update(token, courseId, { status: course.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED' });
     load();
+  };
+
+  const joinLive = async (lessonId: string) => {
+    if (!token) return;
+    setJoiningLive(true);
+    try {
+      const { joinUrl } = await liveSessionApi.getJoinUrl(token, lessonId);
+      setLiveJoinUrl(joinUrl);
+      setJoinedLiveId(lessonId);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Impossible de rejoindre cette session.');
+    } finally {
+      setJoiningLive(false);
+    }
   };
 
   const sendAnnouncement = async (e: React.FormEvent) => {
@@ -97,16 +113,21 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
     if (!token) return;
     const form = lessonForms[moduleId];
     if (!form?.title.trim()) return;
-    await teacherCoursesApi.addLesson(token, moduleId, {
-      title: form.title.trim(),
-      type: form.type,
-      videoUrl: form.videoUrl.trim() || undefined,
-      pdfUrl: form.pdfUrl.trim() || undefined,
-      durationMin: form.durationMin ? Number(form.durationMin) : undefined,
-      liveStartsAt: form.type === 'LIVE_SESSION' && form.liveStartsAt ? new Date(form.liveStartsAt).toISOString() : undefined,
-    });
-    setLessonForms((f) => ({ ...f, [moduleId]: emptyLessonForm() }));
-    load();
+    setError(null);
+    try {
+      await teacherCoursesApi.addLesson(token, moduleId, {
+        title: form.title.trim(),
+        type: form.type,
+        videoUrl: form.videoUrl.trim() || undefined,
+        pdfUrl: form.pdfUrl.trim() || undefined,
+        durationMin: form.durationMin ? Number(form.durationMin) : undefined,
+        liveStartsAt: form.type === 'LIVE_SESSION' && form.liveStartsAt ? new Date(form.liveStartsAt).toISOString() : undefined,
+      });
+      setLessonForms((f) => ({ ...f, [moduleId]: emptyLessonForm() }));
+      load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Impossible d'ajouter cette leçon.");
+    }
   };
 
   const deleteLesson = async (lessonId: string) => {
@@ -229,6 +250,7 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
       <h3 style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontWeight: 500, fontSize: 18, margin: '24px 0 14px' }}>
         Modules &amp; leçons
       </h3>
+      {error && <p style={{ color: 'var(--danger)', fontSize: 13, marginBottom: 14 }}>{error}</p>}
       {course.modules.map((m) => (
         <div key={m.id} className="tc-card">
           <div className="tc-card-head">
@@ -253,9 +275,17 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
                 {l.type === 'LIVE_SESSION' && l.liveUrl && !isPastLive && (
                   <button
                     className="btn btn-ghost btn-sm"
-                    onClick={() => setJoinedLiveId(joinedLiveId === l.id ? null : l.id)}
+                    disabled={joiningLive}
+                    onClick={() => {
+                      if (joinedLiveId === l.id) {
+                        setJoinedLiveId(null);
+                        setLiveJoinUrl(null);
+                      } else {
+                        joinLive(l.id);
+                      }
+                    }}
                   >
-                    {joinedLiveId === l.id ? 'Fermer' : '🔴 Rejoindre'}
+                    {joinedLiveId === l.id ? 'Fermer' : joiningLive ? 'Connexion…' : '🔴 Rejoindre'}
                   </button>
                 )}
                 {isPastLive && (
@@ -271,10 +301,10 @@ export function TeacherCourseEditor({ courseId }: { courseId: string }) {
                 )}
                 <button className="admin-icon-btn danger" onClick={() => deleteLesson(l.id)}>🗑</button>
               </div>
-              {joinedLiveId === l.id && l.liveUrl && !isPastLive && (
+              {joinedLiveId === l.id && liveJoinUrl && !isPastLive && (
                 <div style={{ borderTop: '1px solid var(--border)', aspectRatio: '16/9', background: '#111633' }}>
                   <iframe
-                    src={`${l.liveUrl}#config.prejoinPageEnabled=false`}
+                    src={liveJoinUrl}
                     allow="camera; microphone; fullscreen; display-capture; autoplay"
                     style={{ width: '100%', height: '100%', border: 0 }}
                     title={`Session en direct — ${l.title}`}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../lib/auth-context';
-import { learningApi, CourseLearnDto, LessonDto, ApiError } from '../../lib/api';
+import { learningApi, liveSessionApi, CourseLearnDto, LessonDto, ApiError } from '../../lib/api';
 
 export function CourseLearning({ courseId }: { courseId: string }) {
   const { token } = useAuth();
@@ -12,6 +12,8 @@ export function CourseLearning({ courseId }: { courseId: string }) {
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [marking, setMarking] = useState(false);
   const [joinedLiveId, setJoinedLiveId] = useState<string | null>(null);
+  const [liveJoinUrl, setLiveJoinUrl] = useState<string | null>(null);
+  const [joiningLive, setJoiningLive] = useState(false);
 
   const load = () => {
     if (!token) return;
@@ -59,6 +61,20 @@ export function CourseLearning({ courseId }: { courseId: string }) {
     }
   };
 
+  const joinLive = async (lessonId: string) => {
+    if (!token) return;
+    setJoiningLive(true);
+    try {
+      const { joinUrl } = await liveSessionApi.getJoinUrl(token, lessonId);
+      setLiveJoinUrl(joinUrl);
+      setJoinedLiveId(lessonId);
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Impossible de rejoindre cette session.');
+    } finally {
+      setJoiningLive(false);
+    }
+  };
+
   return (
     <div>
       <div className="course-header">
@@ -93,9 +109,9 @@ export function CourseLearning({ courseId }: { courseId: string }) {
                   Session terminée — l&rsquo;enregistrement n&rsquo;est pas encore disponible
                 </p>
               </div>
-            ) : activeLesson?.type === 'LIVE_SESSION' && joinedLiveId === activeLesson.id && activeLesson.liveUrl ? (
+            ) : activeLesson?.type === 'LIVE_SESSION' && joinedLiveId === activeLesson.id && liveJoinUrl ? (
               <iframe
-                src={`${activeLesson.liveUrl}#config.prejoinPageEnabled=false`}
+                src={liveJoinUrl}
                 allow="camera; microphone; fullscreen; display-capture; autoplay"
                 style={{ width: '100%', height: '100%', border: 0 }}
                 title="Session en direct STHECROH"
@@ -137,17 +153,18 @@ export function CourseLearning({ courseId }: { courseId: string }) {
                 <button
                   className="btn btn-ghost btn-sm"
                   style={{ display: 'inline-block', marginBottom: 12 }}
-                  onClick={() => setJoinedLiveId(null)}
+                  onClick={() => { setJoinedLiveId(null); setLiveJoinUrl(null); }}
                 >
                   Quitter la session
                 </button>
               ) : (
                 <button
                   className="btn btn-gold btn-sm"
+                  disabled={joiningLive}
                   style={{ display: 'inline-block', marginBottom: 12 }}
-                  onClick={() => setJoinedLiveId(activeLesson.id)}
+                  onClick={() => joinLive(activeLesson.id)}
                 >
-                  🔴 Rejoindre le cours en direct
+                  {joiningLive ? 'Connexion…' : '🔴 Rejoindre le cours en direct'}
                 </button>
               )
             )}

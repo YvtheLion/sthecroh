@@ -30,4 +30,10 @@ export class LearningController {
   ) {
     return this.learningService.submitExamAttempt(req.user.userId, examId, body.answers ?? {});
   }
+
+  /** Génère un lien de connexion signé, propre à l'utilisateur, pour une session en direct */
+  @Get('live/:lessonId')
+  getLiveJoinUrl(@Req() req: { user: { userId: string } }, @Param('lessonId') lessonId: string) {
+    return this.learningService.getLiveJoinUrl(req.user.userId, lessonId);
+  }
 }
