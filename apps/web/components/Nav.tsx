@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useUI } from '../lib/ui-context';
 import { useAuth } from '../lib/auth-context';
-import { siteSettingsApi } from '../lib/api';
+import { siteSettingsApi, SocialLinkDto } from '../lib/api';
+import { SocialIcon } from './SocialIcons';
 
 const LINKS = [
   { href: '#presentation', label: 'Notre mission' },
@@ -23,11 +24,15 @@ export function Nav() {
   const { user, logout, loading } = useAuth();
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoChecked, setLogoChecked] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialLinkDto[]>([]);
 
   useEffect(() => {
     siteSettingsApi
       .get()
-      .then((s) => setLogoUrl(s.logoUrl))
+      .then((s) => {
+        setLogoUrl(s.logoUrl);
+        setSocialLinks(s.socialLinks ?? []);
+      })
       .catch(() => {})
       .finally(() => setLogoChecked(true));
   }, []);
@@ -59,7 +64,7 @@ export function Nav() {
           )}
           <span>
             STHECROH
-            <small>Séminaire Théologique</small>
+            <small>Séminaire de Théologie Chrétienne Rocher d&rsquo;Horeb</small>
           </span>
         </a>
 
@@ -125,6 +130,16 @@ export function Nav() {
             <button className="btn btn-ghost btn-sm" onClick={() => openModal('login')}>
               Se connecter
             </button>
+          )}
+
+          {socialLinks.length > 0 && (
+            <div className="nav-social">
+              {socialLinks.map((link) => (
+                <a key={link.platform} href={link.url} target="_blank" rel="noreferrer" aria-label={link.platform}>
+                  <SocialIcon platform={link.platform} size={15} />
+                </a>
+              ))}
+            </div>
           )}
 
           <button

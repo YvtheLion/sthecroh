@@ -2,17 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { siteSettingsApi, SocialLinkDto } from '../lib/api';
-
-const SOCIAL_ICONS: Record<string, string> = {
-  facebook: 'f',
-  youtube: '▶',
-  linkedin: 'in',
-  instagram: '◎',
-  twitter: '𝕏',
-  x: '𝕏',
-  tiktok: '♪',
-  whatsapp: '☎',
-};
+import { SocialIcon } from './SocialIcons';
 
 export function Footer() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -54,7 +44,7 @@ export function Footer() {
               <div className="social-row">
                 {socialLinks.map((link) => (
                   <a key={link.platform} href={link.url} target="_blank" rel="noreferrer" aria-label={link.platform}>
-                    {SOCIAL_ICONS[link.platform.toLowerCase()] ?? link.platform[0].toUpperCase()}
+                    <SocialIcon platform={link.platform} size={16} />
                   </a>
                 ))}
               </div>
