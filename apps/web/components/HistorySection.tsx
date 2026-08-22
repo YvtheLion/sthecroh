@@ -47,6 +47,12 @@ export function HistorySection() {
             </div>
           ))}
         </div>
+
+        <div style={{ textAlign: 'center', marginTop: 36 }}>
+          <a href="/notre-histoire" className="btn btn-ghost btn-sm">
+            Voir toute notre histoire →
+          </a>
+        </div>
       </div>
     </section>
   );

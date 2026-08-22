@@ -5,7 +5,6 @@ import { Hero } from '../components/Hero';
 import { Presentation } from '../components/Presentation';
 import { HistorySection } from '../components/HistorySection';
 import { ProgramsDepartments } from '../components/ProgramsDepartments';
-import { PlatformPreview } from '../components/PlatformPreview';
 import { CoursesSection } from '../components/CoursesSection';
 import { FacultySection } from '../components/FacultySection';
 import { StatsBand } from '../components/StatsBand';
@@ -29,7 +28,6 @@ export default function HomePage() {
         <Presentation />
         <HistorySection />
         <ProgramsDepartments />
-        <PlatformPreview />
         <CoursesSection />
         <FacultySection />
         <StatsBand />

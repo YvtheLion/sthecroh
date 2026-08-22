@@ -531,12 +531,13 @@ model Testimonial {
 }
 
 model Event {
-  id        String   @id @default(cuid())
-  title     String
-  place     String
-  date      DateTime
-  published Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  place       String
+  date        DateTime
+  description String?
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
 }
 
 model GalleryImage {
@@ -600,5 +601,6 @@ model SiteSettings {
   contactPhone  String?
   contactAddress String?
   footerText    String?
+  presentationContent Json? // { mission, vision, valeurs, pillars: [{title, text}, ...] }
   updatedAt     DateTime @updatedAt
 }

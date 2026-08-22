@@ -2,10 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../lib/auth-context';
-import { siteSettingsApi, ApiError, SocialLinkDto } from '../../lib/api';
+import { siteSettingsApi, ApiError, SocialLinkDto, PresentationContentDto } from '../../lib/api';
 
 const MAX_SIZE_BYTES = 1.5 * 1024 * 1024; // 1.5 Mo — largement suffisant pour un logo
 const PLATFORM_OPTIONS = ['facebook', 'instagram', 'youtube', 'linkedin', 'twitter', 'tiktok', 'whatsapp'];
+const EMPTY_PRESENTATION: PresentationContentDto = {
+  mission: '',
+  vision: '',
+  valeurs: '',
+  pillars: [{ title: '', text: '' }, { title: '', text: '' }, { title: '', text: '' }],
+};
 
 export function AdminBrandingPanel() {
   const { token } = useAuth();
@@ -37,6 +43,11 @@ export function AdminBrandingPanel() {
   const [socialSaving, setSocialSaving] = useState(false);
   const [socialMessage, setSocialMessage] = useState<string | null>(null);
 
+  // --- Mission / Vision / Valeurs / Piliers ---
+  const [presentation, setPresentation] = useState<PresentationContentDto>(EMPTY_PRESENTATION);
+  const [presentationSaving, setPresentationSaving] = useState(false);
+  const [presentationMessage, setPresentationMessage] = useState<string | null>(null);
+
   const load = () => {
     siteSettingsApi
       .get()
@@ -50,6 +61,7 @@ export function AdminBrandingPanel() {
         setContactPhone(s.contactPhone ?? '');
         setContactAddress(s.contactAddress ?? '');
         setFooterText(s.footerText ?? '');
+        if (s.presentationContent) setPresentation(s.presentationContent);
       })
       .catch(() => {});
   };
@@ -144,6 +156,27 @@ export function AdminBrandingPanel() {
       setContactMessage(err instanceof ApiError ? err.message : "Échec de l'enregistrement.");
     } finally {
       setContactSaving(false);
+    }
+  };
+
+  const updatePillar = (index: number, patch: Partial<{ title: string; text: string }>) => {
+    setPresentation((p) => ({
+      ...p,
+      pillars: p.pillars.map((pl, i) => (i === index ? { ...pl, ...patch } : pl)),
+    }));
+  };
+
+  const handleSavePresentation = async () => {
+    if (!token) return;
+    setPresentationSaving(true);
+    setPresentationMessage(null);
+    try {
+      await siteSettingsApi.update(token, { presentationContent: presentation });
+      setPresentationMessage('✓ Contenu "Qui sommes-nous" mis à jour — visible immédiatement.');
+    } catch (err) {
+      setPresentationMessage(err instanceof ApiError ? err.message : "Échec de l'enregistrement.");
+    } finally {
+      setPresentationSaving(false);
     }
   };
 
@@ -266,6 +299,48 @@ export function AdminBrandingPanel() {
         {logoMessage && (
           <p style={{ fontSize: 13, color: logoMessage.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>{logoMessage}</p>
         )}
+      </div>
+
+      {/* --- Mission / Vision / Valeurs / Piliers --- */}
+      <div className="tc-card" style={{ maxWidth: 560 }}>
+        <h4 style={{ marginBottom: 4 }}>Qui sommes-nous (Mission, Vision, Valeurs)</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 16 }}>
+          Ce texte s&rsquo;affiche sur la page d&rsquo;accueil et sur la page dédiée ouverte quand on
+          clique sur "Mission", "Vision" ou "Valeurs".
+        </p>
+        <div className="field">
+          <label>Mission</label>
+          <textarea rows={3} value={presentation.mission} onChange={(e) => setPresentation((p) => ({ ...p, mission: e.target.value }))} />
+        </div>
+        <div className="field">
+          <label>Vision</label>
+          <textarea rows={3} value={presentation.vision} onChange={(e) => setPresentation((p) => ({ ...p, vision: e.target.value }))} />
+        </div>
+        <div className="field">
+          <label>Valeurs</label>
+          <textarea rows={3} value={presentation.valeurs} onChange={(e) => setPresentation((p) => ({ ...p, valeurs: e.target.value }))} />
+        </div>
+
+        <h4 style={{ margin: '20px 0 4px', fontSize: 14 }}>Les 3 piliers (bandeau en bas de section)</h4>
+        {presentation.pillars.map((pl, i) => (
+          <div key={i} className="admin-form-grid" style={{ marginBottom: 10 }}>
+            <div className="field">
+              <label>Titre {i + 1}</label>
+              <input value={pl.title} onChange={(e) => updatePillar(i, { title: e.target.value })} placeholder="01 — Rigueur" />
+            </div>
+            <div className="field">
+              <label>Texte {i + 1}</label>
+              <input value={pl.text} onChange={(e) => updatePillar(i, { text: e.target.value })} />
+            </div>
+          </div>
+        ))}
+
+        {presentationMessage && (
+          <p style={{ fontSize: 13, marginTop: 8, color: presentationMessage.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>{presentationMessage}</p>
+        )}
+        <button className="btn btn-primary btn-sm" disabled={presentationSaving} onClick={handleSavePresentation} style={{ marginTop: 12 }}>
+          {presentationSaving ? 'Enregistrement…' : 'Enregistrer ce contenu'}
+        </button>
       </div>
 
       {/* --- Coordonnées & pied de page --- */}

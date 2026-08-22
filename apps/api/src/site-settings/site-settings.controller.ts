@@ -30,6 +30,7 @@ export class SiteSettingsController {
       contactPhone?: string | null;
       contactAddress?: string | null;
       footerText?: string | null;
+      presentationContent?: { mission: string; vision: string; valeurs: string; pillars: { title: string; text: string }[] } | null;
     },
   ) {
     return this.service.update(body);

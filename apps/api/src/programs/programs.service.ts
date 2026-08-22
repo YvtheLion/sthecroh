@@ -14,7 +14,7 @@ export class ProgramsService {
   }
 
   async findOne(id: string) {
-    const record = await this.prisma.program.findUnique({ where: { id } });
+    const record = await this.prisma.program.findUnique({ where: { id }, include: { department: true } });
     if (!record) throw new NotFoundException('Program introuvable.');
     return record;
   }

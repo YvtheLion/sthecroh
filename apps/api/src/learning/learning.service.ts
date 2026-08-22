@@ -25,6 +25,12 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
+    if (enrollment.status === 'PENDING_PAYMENT') {
+      throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d’y accéder.');
+    }
+    if (enrollment.status === 'CANCELLED') {
+      throw new ForbiddenException("Cette inscription a été annulée.");
+    }
 
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
@@ -81,6 +87,9 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+      throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d’y accéder.');
+    }
 
     await this.prisma.lessonProgress.upsert({
       where: { lessonId_studentId: { lessonId, studentId } },
@@ -145,6 +154,9 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId: exam.courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+      throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d\u2019y accéder.');
+    }
 
     const existingAttempt = await this.prisma.examAttempt.findFirst({
       where: { studentId, examId },
@@ -186,6 +198,9 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId: exam.courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+      throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d\u2019y accéder.');
+    }
 
     const existing = await this.prisma.examAttempt.findFirst({
       where: { studentId, examId, submittedAt: { not: null } },

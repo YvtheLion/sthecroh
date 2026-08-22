@@ -44,13 +44,13 @@ export function ProgramsDepartments() {
 
         <div ref={programsReveal.ref} className={`program-grid ${programsReveal.className}`}>
           {programs.map((p) => (
-            <div key={p.id} className="program-row">
+            <a key={p.id} href={`/formations/${p.id}`} className="program-row" style={{ cursor: 'pointer' }}>
               <div>
                 <h4>{p.name}</h4>
                 <span className="meta">{p.durationYears} an{p.durationYears > 1 ? 's' : ''} · {p.degreeLevel}</span>
               </div>
               <span className="arrow">→</span>
-            </div>
+            </a>
           ))}
         </div>
 
@@ -60,10 +60,10 @@ export function ProgramsDepartments() {
           </h4>
           <div className="dept-grid">
             {departments.map((d) => (
-              <div key={d.id} className="dept-card">
+              <a key={d.id} href={`/departements/${d.id}`} className="dept-card" style={{ display: 'block', cursor: 'pointer' }}>
                 <h4>{d.name}</h4>
                 <p>{d.description}</p>
-              </div>
+              </a>
             ))}
           </div>
         </div>

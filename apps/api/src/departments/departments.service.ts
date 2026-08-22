@@ -14,7 +14,7 @@ export class DepartmentsService {
   }
 
   async findOne(id: string) {
-    const record = await this.prisma.department.findUnique({ where: { id } });
+    const record = await this.prisma.department.findUnique({ where: { id }, include: { programs: true } });
     if (!record) throw new NotFoundException('Department introuvable.');
     return record;
   }

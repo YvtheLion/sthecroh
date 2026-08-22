@@ -52,6 +52,7 @@ const EVENT_FIELDS: FieldDef[] = [
   { key: 'title', label: 'Titre', type: 'text', required: true },
   { key: 'place', label: 'Lieu', type: 'text', required: true },
   { key: 'date', label: 'Date', type: 'date', required: true },
+  { key: 'description', label: 'Description complète (page dédiée)', type: 'textarea' },
   { key: 'published', label: 'Publié', type: 'checkbox' },
 ];
 

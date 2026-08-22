@@ -17,6 +17,7 @@ export function AdminProgramsPanel() {
     { key: 'degreeLevel', label: 'Niveau', type: 'text', required: true },
     { key: 'durationYears', label: 'Durée (années)', type: 'number', required: true },
     { key: 'departmentId', label: 'Département', type: 'select', options: departmentOptions, required: true },
+    { key: 'description', label: 'Description complète (page dédiée)', type: 'textarea' },
   ];
 
   return <AdminResourceTable resource="programs" title="Programmes" fields={fields} columns={['name', 'degreeLevel', 'durationYears']} />;

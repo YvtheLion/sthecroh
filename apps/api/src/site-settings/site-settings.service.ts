@@ -23,6 +23,7 @@ export class SiteSettingsService {
     contactPhone?: string | null;
     contactAddress?: string | null;
     footerText?: string | null;
+    presentationContent?: { mission: string; vision: string; valeurs: string; pillars: { title: string; text: string }[] } | null;
   }) {
     const settings = await this.get();
     return this.prisma.siteSettings.update({ where: { id: settings.id }, data: data as any });

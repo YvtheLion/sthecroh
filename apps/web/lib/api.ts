@@ -149,12 +149,19 @@ export interface DepartmentDto {
   slug: string;
   description: string | null;
 }
+export interface DepartmentDetailDto extends DepartmentDto {
+  programs: ProgramDto[];
+}
 export interface ProgramDto {
   id: string;
   name: string;
   slug: string;
   durationYears: number;
   degreeLevel: string | null;
+  description?: string | null;
+}
+export interface ProgramDetailDto extends ProgramDto {
+  department: DepartmentDto;
 }
 export interface PublicStats {
   studentsCount: number;
@@ -174,6 +181,7 @@ export interface EventItem {
   title: string;
   place: string;
   date: string;
+  description?: string | null;
 }
 export interface GalleryImageDto {
   id: string;
@@ -656,6 +664,16 @@ export interface SocialLinkDto {
   platform: string;
   url: string;
 }
+export interface PillarDto {
+  title: string;
+  text: string;
+}
+export interface PresentationContentDto {
+  mission: string;
+  vision: string;
+  valeurs: string;
+  pillars: PillarDto[];
+}
 export interface SiteSettingsDto {
   id: string;
   logoUrl: string | null;
@@ -668,6 +686,7 @@ export interface SiteSettingsDto {
   contactPhone: string | null;
   contactAddress: string | null;
   footerText: string | null;
+  presentationContent: PresentationContentDto | null;
 }
 
 export const siteSettingsApi = {
@@ -685,6 +704,7 @@ export const siteSettingsApi = {
       contactPhone?: string | null;
       contactAddress?: string | null;
       footerText?: string | null;
+      presentationContent?: PresentationContentDto | null;
     },
   ) => request<SiteSettingsDto>('/site-settings', { method: 'PATCH', token, body: JSON.stringify(data) }),
 };
@@ -692,4 +712,10 @@ export const siteSettingsApi = {
 export const liveSessionApi = {
   getJoinUrl: (token: string, lessonId: string) =>
     request<{ provider: 'jaas' | 'jitsi'; joinUrl: string }>(`/learning/live/${lessonId}`, { token }),
+};
+
+export const detailApi = {
+  program: (id: string) => request<ProgramDetailDto>(`/programs/${id}`),
+  department: (id: string) => request<DepartmentDetailDto>(`/departments/${id}`),
+  event: (id: string) => request<EventItem>(`/events/${id}`),
 };

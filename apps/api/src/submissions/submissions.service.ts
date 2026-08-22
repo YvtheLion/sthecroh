@@ -22,6 +22,9 @@ export class SubmissionsService {
       where: { studentId_courseId: { studentId, courseId: exam.courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+      throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d’y accéder.');
+    }
 
     const existing = await this.prisma.submission.findFirst({ where: { studentId, examId } });
     if (existing) {

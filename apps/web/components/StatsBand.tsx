@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useReveal, useCountUp } from '../lib/use-reveal';
 import { contentApi, PublicStats } from '../lib/api';
 
-const FALLBACK: PublicStats = { studentsCount: 3482, coursesCount: 128, certificatesCount: 947, successRate: 94 };
+const EMPTY: PublicStats = { studentsCount: 0, coursesCount: 0, certificatesCount: 0, successRate: 0 };
 
 function Stat({ target, suffix, label }: { target: number; suffix?: string; label: string }) {
   const { ref, value } = useCountUp(target, suffix);
@@ -20,16 +20,12 @@ function Stat({ target, suffix, label }: { target: number; suffix?: string; labe
 
 export function StatsBand() {
   const band = useReveal();
-  const [stats, setStats] = useState<PublicStats>(FALLBACK);
+  // Toujours les vrais chiffres calculés depuis la base de données — jamais de valeur inventée,
+  // même en cas d'échec de la requête (mieux vaut afficher 0 que mentir).
+  const [stats, setStats] = useState<PublicStats>(EMPTY);
 
   useEffect(() => {
-    contentApi
-      .stats()
-      .then((s) => {
-        // On ne remplace que si la base contient déjà des données significatives
-        if (s.studentsCount > 0 || s.coursesCount > 0) setStats(s);
-      })
-      .catch(() => {});
+    contentApi.stats().then(setStats).catch(() => {});
   }, []);
 
   return (

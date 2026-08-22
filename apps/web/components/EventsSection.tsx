@@ -32,7 +32,7 @@ export function EventsSection() {
           {events.map((e) => {
             const d = new Date(e.date);
             return (
-              <div key={e.id} className="event-card">
+              <a key={e.id} href={`/evenements/${e.id}`} className="event-card" style={{ cursor: 'pointer' }}>
                 <div className="event-date">
                   <b>{String(d.getDate()).padStart(2, '0')}</b>
                   <span>{MONTHS[d.getMonth()]}</span>
@@ -41,7 +41,7 @@ export function EventsSection() {
                   <h4>{e.title}</h4>
                   <p>{e.place}</p>
                 </div>
-              </div>
+              </a>
             );
           })}
         </div>
