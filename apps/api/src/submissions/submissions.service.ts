@@ -22,7 +22,7 @@ export class SubmissionsService {
       where: { studentId_courseId: { studentId, courseId: exam.courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
-    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'DROPPED') {
       throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d’y accéder.');
     }
 

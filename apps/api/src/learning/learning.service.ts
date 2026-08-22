@@ -28,7 +28,7 @@ export class LearningService {
     if (enrollment.status === 'PENDING_PAYMENT') {
       throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d’y accéder.');
     }
-    if (enrollment.status === 'CANCELLED') {
+    if (enrollment.status === 'DROPPED') {
       throw new ForbiddenException("Cette inscription a été annulée.");
     }
 
@@ -87,7 +87,7 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
-    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'DROPPED') {
       throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d’y accéder.');
     }
 
@@ -154,7 +154,7 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId: exam.courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
-    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'DROPPED') {
       throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d\u2019y accéder.');
     }
 
@@ -198,7 +198,7 @@ export class LearningService {
       where: { studentId_courseId: { studentId, courseId: exam.courseId } },
     });
     if (!enrollment) throw new ForbiddenException("Vous n'êtes pas inscrit à ce cours.");
-    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'CANCELLED') {
+    if (enrollment.status === 'PENDING_PAYMENT' || enrollment.status === 'DROPPED') {
       throw new ForbiddenException('Le paiement de ce cours doit être finalisé avant d\u2019y accéder.');
     }
 
