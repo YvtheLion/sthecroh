@@ -24,7 +24,12 @@ export class SiteSettingsController {
       faviconUrl?: string | null;
       heroTitle?: string | null;
       heroSubtitle?: string | null;
+      brandSubtitle?: string | null;
       socialLinks?: { platform: string; url: string }[] | null;
+      contactEmail?: string | null;
+      contactPhone?: string | null;
+      contactAddress?: string | null;
+      footerText?: string | null;
     },
   ) {
     return this.service.update(body);

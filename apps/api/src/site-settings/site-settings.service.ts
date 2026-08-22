@@ -17,7 +17,12 @@ export class SiteSettingsService {
     faviconUrl?: string | null;
     heroTitle?: string | null;
     heroSubtitle?: string | null;
+    brandSubtitle?: string | null;
     socialLinks?: { platform: string; url: string }[] | null;
+    contactEmail?: string | null;
+    contactPhone?: string | null;
+    contactAddress?: string | null;
+    footerText?: string | null;
   }) {
     const settings = await this.get();
     return this.prisma.siteSettings.update({ where: { id: settings.id }, data: data as any });

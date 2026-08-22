@@ -25,6 +25,7 @@ export function Nav() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoChecked, setLogoChecked] = useState(false);
   const [socialLinks, setSocialLinks] = useState<SocialLinkDto[]>([]);
+  const [brandSubtitle, setBrandSubtitle] = useState('Séminaire de Théologie Chrétienne\nRocher d’Horeb');
 
   useEffect(() => {
     siteSettingsApi
@@ -32,6 +33,7 @@ export function Nav() {
       .then((s) => {
         setLogoUrl(s.logoUrl);
         setSocialLinks(s.socialLinks ?? []);
+        if (s.brandSubtitle) setBrandSubtitle(s.brandSubtitle);
       })
       .catch(() => {})
       .finally(() => setLogoChecked(true));
@@ -64,7 +66,7 @@ export function Nav() {
           )}
           <span>
             STHECROH
-            <small>Séminaire de Théologie Chrétienne Rocher d&rsquo;Horeb</small>
+            <small style={{ whiteSpace: 'pre-line' }}>{brandSubtitle}</small>
           </span>
         </a>
 

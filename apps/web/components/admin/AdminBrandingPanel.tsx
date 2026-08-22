@@ -20,8 +20,17 @@ export function AdminBrandingPanel() {
   // --- Titre d'accueil ---
   const [heroTitle, setHeroTitle] = useState('');
   const [heroSubtitle, setHeroSubtitle] = useState('');
+  const [brandSubtitle, setBrandSubtitle] = useState('');
   const [heroSaving, setHeroSaving] = useState(false);
   const [heroMessage, setHeroMessage] = useState<string | null>(null);
+
+  // --- Coordonnées & pied de page ---
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactAddress, setContactAddress] = useState('');
+  const [footerText, setFooterText] = useState('');
+  const [contactSaving, setContactSaving] = useState(false);
+  const [contactMessage, setContactMessage] = useState<string | null>(null);
 
   // --- Réseaux sociaux ---
   const [socialLinks, setSocialLinks] = useState<SocialLinkDto[]>([]);
@@ -35,7 +44,12 @@ export function AdminBrandingPanel() {
         setLogoUrl(s.logoUrl);
         setHeroTitle(s.heroTitle ?? '');
         setHeroSubtitle(s.heroSubtitle ?? '');
+        setBrandSubtitle(s.brandSubtitle ?? '');
         setSocialLinks(s.socialLinks ?? []);
+        setContactEmail(s.contactEmail ?? '');
+        setContactPhone(s.contactPhone ?? '');
+        setContactAddress(s.contactAddress ?? '');
+        setFooterText(s.footerText ?? '');
       })
       .catch(() => {});
   };
@@ -104,12 +118,32 @@ export function AdminBrandingPanel() {
       await siteSettingsApi.update(token, {
         heroTitle: heroTitle.trim() || null,
         heroSubtitle: heroSubtitle.trim() || null,
+        brandSubtitle: brandSubtitle.trim() || null,
       });
       setHeroMessage('✓ Texte d’accueil mis à jour — visible immédiatement.');
     } catch (err) {
       setHeroMessage(err instanceof ApiError ? err.message : "Échec de l'enregistrement.");
     } finally {
       setHeroSaving(false);
+    }
+  };
+
+  const handleSaveContact = async () => {
+    if (!token) return;
+    setContactSaving(true);
+    setContactMessage(null);
+    try {
+      await siteSettingsApi.update(token, {
+        contactEmail: contactEmail.trim() || null,
+        contactPhone: contactPhone.trim() || null,
+        contactAddress: contactAddress.trim() || null,
+        footerText: footerText.trim() || null,
+      });
+      setContactMessage('✓ Coordonnées mises à jour — visibles immédiatement.');
+    } catch (err) {
+      setContactMessage(err instanceof ApiError ? err.message : "Échec de l'enregistrement.");
+    } finally {
+      setContactSaving(false);
     }
   };
 
@@ -158,6 +192,18 @@ export function AdminBrandingPanel() {
         <div className="field">
           <label>Sous-titre</label>
           <textarea rows={2} value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Petit texte sous "STHECROH" (dans le logo)</label>
+          <textarea
+            rows={2}
+            value={brandSubtitle}
+            onChange={(e) => setBrandSubtitle(e.target.value)}
+            placeholder={'Séminaire de Théologie Chrétienne\nRocher d\'Horeb'}
+          />
+          <p style={{ fontSize: 12, color: 'var(--text-soft)', marginTop: 4 }}>
+            Astuce : appuyez sur Entrée à l&rsquo;endroit exact où le texte doit passer à la ligne.
+          </p>
         </div>
         {heroMessage && (
           <p style={{ fontSize: 13, marginBottom: 10, color: heroMessage.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>{heroMessage}</p>
@@ -220,6 +266,38 @@ export function AdminBrandingPanel() {
         {logoMessage && (
           <p style={{ fontSize: 13, color: logoMessage.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>{logoMessage}</p>
         )}
+      </div>
+
+      {/* --- Coordonnées & pied de page --- */}
+      <div className="tc-card" style={{ maxWidth: 560 }}>
+        <h4 style={{ marginBottom: 4 }}>Coordonnées &amp; pied de page</h4>
+        <p style={{ fontSize: 13, color: 'var(--text-soft)', marginBottom: 16 }}>
+          Affichées dans le pied de page et la section Contact de la page d&rsquo;accueil.
+        </p>
+        <div className="admin-form-grid">
+          <div className="field">
+            <label>E-mail de contact</label>
+            <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="contact@sthecroh.edu" />
+          </div>
+          <div className="field">
+            <label>Téléphone</label>
+            <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="+509 38 00 00 00" />
+          </div>
+          <div className="field full">
+            <label>Adresse</label>
+            <input value={contactAddress} onChange={(e) => setContactAddress(e.target.value)} placeholder="Port-au-Prince, Haïti" />
+          </div>
+          <div className="field full">
+            <label>Texte de bas de page (copyright)</label>
+            <input value={footerText} onChange={(e) => setFooterText(e.target.value)} placeholder="© 2026 STHECROH - Séminaire Théologique. Tous droits réservés." />
+          </div>
+        </div>
+        {contactMessage && (
+          <p style={{ fontSize: 13, marginTop: 8, color: contactMessage.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>{contactMessage}</p>
+        )}
+        <button className="btn btn-primary btn-sm" disabled={contactSaving} onClick={handleSaveContact} style={{ marginTop: 12 }}>
+          {contactSaving ? 'Enregistrement…' : 'Enregistrer les coordonnées'}
+        </button>
       </div>
 
       {/* --- Réseaux sociaux --- */}

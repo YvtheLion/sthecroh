@@ -1,15 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useReveal } from '../lib/use-reveal';
 import { useUI } from '../lib/ui-context';
-import { contactApi, ApiError } from '../lib/api';
+import { contactApi, siteSettingsApi, ApiError } from '../lib/api';
 
 export function ContactSection() {
   const head = useReveal();
   const grid = useReveal();
   const { showToast } = useUI();
   const [sending, setSending] = useState(false);
+  const [contactEmail, setContactEmail] = useState('contact@sthecroh.edu');
+  const [contactPhone, setContactPhone] = useState('+509 38 00 00 00');
+  const [contactAddress, setContactAddress] = useState('Port-au-Prince, Haïti');
+
+  useEffect(() => {
+    siteSettingsApi
+      .get()
+      .then((s) => {
+        if (s.contactEmail) setContactEmail(s.contactEmail);
+        if (s.contactPhone) setContactPhone(s.contactPhone);
+        if (s.contactAddress) setContactAddress(s.contactAddress);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,15 +94,15 @@ export function ContactSection() {
             <div className="contact-info-grid">
               <div className="contact-info-card">
                 <div className="k">Adresse</div>
-                <div className="v">Port-au-Prince, Haïti</div>
+                <div className="v">{contactAddress}</div>
               </div>
               <div className="contact-info-card">
                 <div className="k">Téléphone</div>
-                <div className="v">+509 38 00 00 00</div>
+                <div className="v">{contactPhone}</div>
               </div>
               <div className="contact-info-card">
                 <div className="k">E-mail</div>
-                <div className="v">contact@sthecroh.edu</div>
+                <div className="v">{contactEmail}</div>
               </div>
             </div>
           </div>

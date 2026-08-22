@@ -8,6 +8,10 @@ export function Footer() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoChecked, setLogoChecked] = useState(false);
   const [socialLinks, setSocialLinks] = useState<SocialLinkDto[]>([]);
+  const [contactEmail, setContactEmail] = useState('contact@sthecroh.edu');
+  const [contactPhone, setContactPhone] = useState('+509 38 00 00 00');
+  const [contactAddress, setContactAddress] = useState('Port-au-Prince, Haïti');
+  const [footerText, setFooterText] = useState('© 2026 STHECROH - Séminaire Théologique. Tous droits réservés.');
 
   useEffect(() => {
     siteSettingsApi
@@ -15,6 +19,10 @@ export function Footer() {
       .then((s) => {
         setLogoUrl(s.logoUrl);
         setSocialLinks(s.socialLinks ?? []);
+        if (s.contactEmail) setContactEmail(s.contactEmail);
+        if (s.contactPhone) setContactPhone(s.contactPhone);
+        if (s.contactAddress) setContactAddress(s.contactAddress);
+        if (s.footerText) setFooterText(s.footerText);
       })
       .catch(() => {})
       .finally(() => setLogoChecked(true));
@@ -71,14 +79,14 @@ export function Footer() {
           <div>
             <h5>Contact</h5>
             <ul>
-              <li>contact@sthecroh.edu</li>
-              <li>+509 38 00 00 00</li>
-              <li>Port-au-Prince, Haïti</li>
+              <li>{contactEmail}</li>
+              <li>{contactPhone}</li>
+              <li>{contactAddress}</li>
             </ul>
           </div>
         </div>
         <div className="foot-bottom">
-          <span>© 2026 STHECROH - Séminaire Théologique. Tous droits réservés.</span>
+          <span>{footerText}</span>
           <span>Confidentialité · Conditions d&rsquo;utilisation</span>
         </div>
       </div>

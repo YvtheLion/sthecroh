@@ -589,11 +589,16 @@ model ContactMessage {
 
 /// Une seule ligne — réglages globaux du site (logo, etc.)
 model SiteSettings {
-  id          String   @id @default(cuid())
-  logoUrl     String?
-  faviconUrl  String?
-  heroTitle   String?
-  heroSubtitle String?
-  socialLinks Json?    // ex: [{ "platform": "facebook", "url": "https://..." }, ...]
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  logoUrl       String?
+  faviconUrl    String?
+  heroTitle     String?
+  heroSubtitle  String?
+  brandSubtitle String?  // ex: "Séminaire de Théologie Chrétienne\nRocher d'Horeb"
+  socialLinks   Json?    // ex: [{ "platform": "facebook", "url": "https://..." }, ...]
+  contactEmail  String?
+  contactPhone  String?
+  contactAddress String?
+  footerText    String?
+  updatedAt     DateTime @updatedAt
 }
